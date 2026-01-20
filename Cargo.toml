@@ -2,4 +2,4 @@
 members = [
     "starlight-axum", "starlight-protocol",
     "starlight-tokio"
-]
+, "starlight-utils"]
