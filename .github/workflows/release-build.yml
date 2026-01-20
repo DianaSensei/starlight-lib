@@ -1,0 +1,28 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build workspace
+        run: cargo build --workspace --release --locked
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: starlight-lib-release
+          path: target/release
+          if-no-files-found: error
