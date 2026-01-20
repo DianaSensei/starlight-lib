@@ -6,6 +6,7 @@ use axum::response::Response;
 use opentelemetry::global;
 use opentelemetry_http::HeaderExtractor;
 use std::time::Duration;
+use opentelemetry_instrumentation_tower::HTTPMetricsLayer;
 use tower::ServiceBuilder;
 use tower::layer::util::{Identity, Stack};
 use tower_http::ServiceBuilderExt;
@@ -15,7 +16,6 @@ use tower_http::request_id::{
     MakeRequestUuid, PropagateRequestId, PropagateRequestIdLayer, SetRequestId, SetRequestIdLayer,
 };
 use tower_http::trace::{DefaultMakeSpan, HttpMakeClassifier, TraceLayer};
-use tower_otel_http_metrics::HTTPMetricsLayer;
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
@@ -41,7 +41,7 @@ pub fn common_middleware() -> SetRequestId<
 }
 
 pub fn oltp_middleware() -> HTTPMetricsLayer {
-    tower_otel_http_metrics::HTTPMetricsLayerBuilder::builder()
+    opentelemetry_instrumentation_tower::HTTPMetricsLayerBuilder::builder()
         .with_meter(GLOBAL_METER.clone())
         .build()
         .expect("Failed to build HTTP metrics layer")
