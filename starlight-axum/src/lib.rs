@@ -6,7 +6,10 @@ pub mod oltp;
 pub mod middleware;
 
 #[macro_use]
-extern crate tracing;
+extern crate tracing as internal_tracing;
+
+pub use tracing;
+pub use headers;
 
 pub(crate) fn get_env_or_panic(variable: &str) -> String {
     std::env::var(variable).expect(format!("{} is not set", variable).as_str())
