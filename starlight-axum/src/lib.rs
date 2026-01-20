@@ -10,6 +10,7 @@ extern crate tracing as internal_tracing;
 
 pub use tracing;
 pub use headers;
+pub use axum::serve;
 pub use axum::http as axum_http;
 pub use axum::response as axum_response;
 pub use axum::middleware as axum_middleware;
