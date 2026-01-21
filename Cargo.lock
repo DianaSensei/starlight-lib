@@ -1515,10 +1515,7 @@ version = "0.1.0"
 name = "starlight-tokio"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "async-trait",
  "tokio",
- "tokio-util",
 ]
 
 [[package]]

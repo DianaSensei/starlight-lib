@@ -6,8 +6,3 @@ edition = "2024"
 [dependencies]
 # Runtime
 tokio = { version = "1", features = ["full"] }
-
-# Make trait can be async
-async-trait = "0.1"
-tokio-util = "0.7"
-anyhow = "1"
