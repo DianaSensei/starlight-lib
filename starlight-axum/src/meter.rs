@@ -1,3 +1,4 @@
+use crate::get_env_or_panic;
 use crate::resource::get_resource;
 use opentelemetry::metrics::Meter;
 use opentelemetry::{InstrumentationScope, global};
@@ -5,7 +6,6 @@ use opentelemetry_otlp::{MetricExporter, WithExportConfig};
 use opentelemetry_sdk::metrics::{PeriodicReader, SdkMeterProvider};
 use std::sync::{LazyLock, OnceLock};
 use std::time::Duration;
-use crate::get_env_or_panic;
 
 static SDK_METER_PROVIDER: OnceLock<SdkMeterProvider> = OnceLock::new();
 

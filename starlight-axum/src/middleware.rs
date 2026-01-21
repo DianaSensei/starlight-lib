@@ -5,8 +5,8 @@ use axum::http::{HeaderMap, HeaderName};
 use axum::response::Response;
 use opentelemetry::global;
 use opentelemetry_http::HeaderExtractor;
-use std::time::Duration;
 use opentelemetry_instrumentation_tower::HTTPMetricsLayer;
+use std::time::Duration;
 use tower::ServiceBuilder;
 use tower::layer::util::{Identity, Stack};
 use tower_http::ServiceBuilderExt;
@@ -15,7 +15,7 @@ use tower_http::normalize_path::NormalizePathLayer;
 use tower_http::request_id::{
     MakeRequestUuid, PropagateRequestId, PropagateRequestIdLayer, SetRequestId, SetRequestIdLayer,
 };
-use tower_http::trace::{DefaultMakeSpan, HttpMakeClassifier, TraceLayer};
+use tower_http::trace::{HttpMakeClassifier, TraceLayer};
 use tracing::Span;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 

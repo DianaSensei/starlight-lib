@@ -1,6 +1,7 @@
 use crate::logger::{CustomLogFormatter, get_logger_provider, get_or_init_logger_provider};
 use crate::meter::{get_meter_provider, get_or_init_meter_provider};
 use crate::tracer::{get_or_init_tracer_provider, get_tracer_provider};
+use crate::{get_env_or_default, get_env_or_panic};
 use opentelemetry::global;
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_appender_tracing::layer::OpenTelemetryTracingBridge;
@@ -11,7 +12,6 @@ use tracing_opentelemetry::{MetricsLayer, OpenTelemetryLayer};
 use tracing_subscriber::EnvFilter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use crate::{get_env_or_default, get_env_or_panic};
 
 pub fn config_oltp(
     oltp_grpc_url: &str,
@@ -38,7 +38,10 @@ pub fn config_oltp(
         .event_format(CustomLogFormatter)
         .with_writer(std::io::stdout);
 
-    let log_level_filter = EnvFilter::new(get_env_or_default("RUST_LOG", "debug,axum_web_server=debug,tower_http=trace".to_owned()), );
+    let log_level_filter = EnvFilter::new(get_env_or_default(
+        "RUST_LOG",
+        "debug,axum_web_server=debug,tower_http=trace".to_owned(),
+    ));
 
     global::set_text_map_propagator(TraceContextPropagator::new());
     tracing_subscriber::registry()

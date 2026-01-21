@@ -1,10 +1,10 @@
+use crate::{get_env_or_default, get_env_or_panic};
 use opentelemetry::KeyValue;
 use opentelemetry_sdk::Resource;
 use opentelemetry_semantic_conventions::attribute::{
     DEPLOYMENT_ENVIRONMENT_NAME, SERVICE_NAME, SERVICE_VERSION,
 };
 use std::sync::OnceLock;
-use crate::{get_env_or_default, get_env_or_panic};
 
 pub fn get_resource() -> Resource {
     static RESOURCE: OnceLock<Resource> = OnceLock::new();

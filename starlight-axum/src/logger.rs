@@ -145,14 +145,13 @@ where
 use axum::body::Body;
 use axum::body::Bytes;
 use axum::extract::Request;
-use axum::{http, Extension};
+use axum::http;
 use axum::http::{Extensions, StatusCode};
 use axum::http::header;
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use http_body_util::BodyExt;
 use std::time::Instant;
-use headers::HeaderValue;
 
 pub async fn print_request_response(
     req: Request,
