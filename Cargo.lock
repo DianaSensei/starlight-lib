@@ -1508,15 +1508,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "starlight-i18n"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "starlight-protocol"
 version = "0.1.0"
 
