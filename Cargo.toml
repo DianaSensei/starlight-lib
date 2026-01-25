@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "starlight-axum", "starlight-protocol",
+    "starlight-axum", "starlight-i18n", "starlight-protocol",
     "starlight-tokio", "starlight-utils"]
 
 resolver = "3"
