@@ -211,7 +211,7 @@ where
     match body.collect().await {
         Ok(bytes) => {
             let bytes = bytes.to_bytes();
-            info!("request payload: {:?}", String::from_utf8_lossy(&bytes));
+            info!("request payload: {}", String::from_utf8_lossy(&bytes));
             Ok(bytes)
         },
         Err(err) => {
@@ -235,12 +235,12 @@ where
     match body.collect().await {
         Ok(bytes) => {
             let bytes = bytes.to_bytes();
-            info!("response payload: {:?}", String::from_utf8_lossy(&bytes));
-            info!("----- END Request in {:?} ms", start_time.elapsed());
+            info!("response payload: {}", String::from_utf8_lossy(&bytes));
+            info!("----- END Request in {:?}", start_time.elapsed());
             Ok(bytes)
         },
         Err(err) => {
-            info!("----- END Request in {:?} ms", start_time.elapsed());
+            info!("----- END Request in {:?}", start_time.elapsed());
             Err((
                 StatusCode::BAD_REQUEST,
                 format!("failed to parse response body: {}", err),
