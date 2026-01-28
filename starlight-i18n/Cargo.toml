@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+starlight-protocol = { path = "../starlight-protocol" }
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"

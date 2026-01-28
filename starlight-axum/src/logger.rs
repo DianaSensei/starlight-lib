@@ -152,6 +152,7 @@ use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use http_body_util::BodyExt;
 use std::time::Instant;
+use starlight_protocol::constants::STARLIGHT_REQUEST_ID;
 
 pub async fn print_request_response(
     req: Request,
@@ -182,30 +183,29 @@ where
     B: axum::body::HttpBody<Data = Bytes>,
     B::Error: std::fmt::Display,
 {
-    info!("----- Start Request");
-
     let headers = &parts.headers;
-    info!("headers: {:#?}", headers);
-
-    if let Some(user_agent) = headers.get(header::USER_AGENT) {
-        info!("{}: {:#?}", header::USER_AGENT, user_agent);
+    info!("----- Receive HTTP {:#?} {:#?}", &parts.method, &parts.uri);
+    info!("version: {:#?}", &parts.version);
+    // Get from socket (if Axum extensions were set up)
+    if let Some(source_addr) = extension.get::<SocketAddr>() {
+        info!("source address: {:#?}", source_addr);
     }
 
     if let Some(forwarded) = parts.headers.get(header::FORWARDED) {
         info!("{}: {:#?}", header::FORWARDED, forwarded.to_str());
     }
 
-    // Get from socket (if Axum extensions were set up)
-    if let Some(source_addr) = extension.get::<SocketAddr>() {
-        info!("ip: {:#?}", source_addr.ip().to_string());
+    if let Some(user_agent) = headers.get(header::USER_AGENT) {
+        info!("{}: {:#?}", header::USER_AGENT, user_agent);
+    }
+
+    if let Some(starlight_request_id) = headers.get(STARLIGHT_REQUEST_ID) {
+        info!("{}: {:#?}", STARLIGHT_REQUEST_ID, starlight_request_id);
     }
 
     if let Some(_) = headers.get(header::AUTHORIZATION) {
         info!("{:#?}: \"****************************\"", header::AUTHORIZATION.as_str());
     }
-
-    info!("uri: {:#?} {:#?}", &parts.method, &parts.uri);
-    info!("version: {:#?}", &parts.version);
 
 
     match body.collect().await {
