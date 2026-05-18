@@ -30,5 +30,5 @@ time-tz = { version = "3.0.0-rc.5.0.0", features = ["system"] }
 ansi_term = "0.12"
 dotenv = "0.15"
 http-body-util = "0.1"
-uuid = "1.19"
+uuid = "1.23"
 headers = "0.4"
