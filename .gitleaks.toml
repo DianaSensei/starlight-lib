@@ -5,6 +5,19 @@ title = "starlight"
 [extend]
 useDefault = true
 
+# Documented placeholder values found in examples and bot branches. Matched against the secret
+# value only, so a real credential in the same place is still reported. Keep this list narrow.
+[[allowlists]]
+description = "Placeholder and well-known local-default values"
+regexTarget = "secret"
+regexes = [
+  '''\.signature$''',                      # example JWT with a literal fake signature
+  '''\.\.\.$''',                            # truncated example token, e.g. eyJ0eXAi...
+  '''^(?i)(in)?valid[_-]?token''',          # invalid_token / valid_token... in API examples
+  '''^minioadmin$''',                       # MinIO's documented default credential
+  '''^minio_(access|secret)_key$''',        # variable-name placeholders
+]
+
 # The default ruleset does not catch plain credentials in config files
 # (e.g. SMTP app passwords, S3 keys, admin passwords), so add explicit rules.
 [[rules]]
