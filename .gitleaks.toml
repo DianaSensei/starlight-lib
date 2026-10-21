@@ -1,0 +1,33 @@
+# Secret scanning rules for Starlight repositories.
+# Used by the `Secret scan` workflow and by the pre-commit hook (.pre-commit-config.yaml).
+title = "starlight"
+
+[extend]
+useDefault = true
+
+# The default ruleset does not catch plain credentials in config files
+# (e.g. SMTP app passwords, S3 keys, admin passwords), so add explicit rules.
+[[rules]]
+id = "starlight-config-credential"
+description = "Credential hard-coded in a configuration file"
+regex = '''(?i)[\w.-]*(?:password|passwd|secret|access[_-]?key(?:[_-]?id)?|api[_-]?key|client[_-]?secret|private[_-]?key)[\w.-]*["']?[ \t]*[:=][ \t]*["']?([^\s"'#,]{4,})'''
+secretGroup = 1
+path = '''(?i)(\.(ya?ml|toml|json|ini|conf|properties)$|(^|/)\.env(\.[\w-]+)?$|(^|/)docker-compose[\w.-]*$)'''
+keywords = ["password", "passwd", "secret", "access_key", "access-key", "accesskey", "api_key", "api-key", "apikey", "client_secret", "private_key"]
+
+  [[rules.allowlists]]
+  description = "Placeholders and environment references are not secrets"
+  regexTarget = "match"
+  regexes = ['''\$\{''', '''<[^>]+>''', '''[:=][ \t]*["']?<''', '''(?i)\*{3}REMOVED\*{3}''']
+
+[[rules]]
+id = "starlight-url-credential"
+description = "Credentials embedded in a connection URL"
+regex = '''[a-zA-Z][a-zA-Z0-9+.-]*://[^\s:/@"'<>$]+:([^\s@/"'<>]{3,})@'''
+secretGroup = 1
+keywords = ["://"]
+
+  [[rules.allowlists]]
+  description = "Placeholders and environment references are not secrets"
+  regexTarget = "match"
+  regexes = ['''\$\{''', '''<[^>]+>''', '''[:=][ \t]*["']?<''', '''(?i)\*{3}REMOVED\*{3}''']
