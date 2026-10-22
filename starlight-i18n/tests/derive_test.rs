@@ -1,3 +1,5 @@
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 use starlight_i18n::I18nCode;
 
 /// Test enum with unit variants only

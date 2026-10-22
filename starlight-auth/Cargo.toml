@@ -1,0 +1,37 @@
+[package]
+name = "starlight-auth"
+description = "OIDC/JWT verification via JWKS, tenant-scoped AuthContext and permission checks for Starlight APIs."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+# EdDSA token issuing and JWKS publishing (identity service).
+issuer = ["dep:ed25519-dalek", "dep:base64"]
+# Ready-made issuer + verifier pair for service tests.
+test-util = ["issuer", "dep:rand_core"]
+
+[dependencies]
+axum.workspace = true
+base64 = { workspace = true, optional = true }
+ed25519-dalek = { version = "2", features = ["pkcs8", "pem", "rand_core"], optional = true }
+jsonwebtoken.workspace = true
+rand_core = { version = "0.6", features = ["getrandom"], optional = true }
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+starlight-core.workspace = true
+starlight-web.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+starlight-auth = { path = ".", features = ["test-util"] }
+tower = { workspace = true, features = ["util"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints]
+workspace = true

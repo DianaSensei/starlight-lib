@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Throwaway service container with trust auth: no credentials needed.
+  STARLIGHT_TEST_DATABASE_URL: postgres://starlight_app@localhost:5432/starlight_test
+  STARLIGHT_TEST_NATS_URL: nats://localhost:4222
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain from rust-toolchain.toml
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Start NATS with JetStream
+        run: docker run -d --name nats -p 4222:4222 nats:2.11 -js
+
+      - name: Create non-superuser test database (superusers bypass row-level security)
+        run: |
+          psql -h localhost -U postgres -c "CREATE ROLE starlight_app LOGIN"
+          psql -h localhost -U postgres -c "CREATE DATABASE starlight_test OWNER starlight_app"
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Lint
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+
+      - name: Test (including database and NATS integration tests)
+        run: cargo test --workspace --all-features --locked -- --include-ignored

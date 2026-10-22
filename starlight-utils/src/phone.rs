@@ -39,8 +39,7 @@ pub fn normalize_phone(input: &str, default_country: &str) -> Option<PhoneNumber
     }
 
     // If it's already using '+' form, parse directly
-    if s.starts_with('+') {
-        let digits = &s[1..];
+    if let Some(digits) = s.strip_prefix('+') {
         if !digits.chars().all(|c| c.is_ascii_digit()) {
             return None;
         }
@@ -70,9 +69,8 @@ pub fn normalize_phone(input: &str, default_country: &str) -> Option<PhoneNumber
     }
 
     // International prefix starting with "00"
-    if s.starts_with("00") {
-        // Convert to '+' and re-run
-        let plus_form = format!("+{}", &s[2..]);
+    if let Some(international) = s.strip_prefix("00") {
+        let plus_form = format!("+{international}");
         return normalize_phone(&plus_form, default_country);
     }
 
@@ -82,12 +80,9 @@ pub fn normalize_phone(input: &str, default_country: &str) -> Option<PhoneNumber
     let mut nsn: String = s.chars().filter(|c| c.is_ascii_digit()).collect();
 
     // Remove trunk leading '0' for specific countries (e.g., VN, GB, DE, FR, IT, TH, MY, ID, JP, KR)
-    if iso.map(is_trunk_zero_country).unwrap_or(false) {
-        while nsn.starts_with('0') {
-            // Be conservative: remove only the first leading '0'
-            nsn.remove(0);
-            break;
-        }
+    if iso.map(is_trunk_zero_country).unwrap_or(false) && nsn.starts_with('0') {
+        // Only the single trunk prefix is dropped; further zeros belong to the number.
+        nsn.remove(0);
     }
 
     if nsn.is_empty() {
@@ -139,18 +134,16 @@ pub fn is_valid_e164(s: &str) -> bool {
     }
     // E.164 max length is 15 digits (excluding '+'); keep a sensible minimum too.
     let len = digits.len();
-    (len >= 7) && (len <= 15)
+    (7..=15).contains(&len)
 }
 
 fn strip_non_digits_keep_plus(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
-    for (i, ch) in input.chars().enumerate() {
-        if ch.is_ascii_digit() {
+    for ch in input.chars() {
+        // A '+' counts only before any digit, so leading spaces or brackets do not drop it.
+        let is_leading_plus = ch == '+' && out.is_empty();
+        if ch.is_ascii_digit() || is_leading_plus {
             out.push(ch);
-        } else if ch == '+' && i == 0 {
-            out.push(ch);
-        } else {
-            // skip
         }
     }
     out
@@ -175,7 +168,7 @@ fn resolve_country_hint(hint: &str) -> Option<(&'static str, Option<&'static str
     // Accept ISO alpha-2 forms
     match up.as_str() {
         "VN" => Some(("84", Some("VN"))),
-        "US" => Some(("1", Some("US"))),   // ambiguous (US/CA); treat as US by default
+        "US" => Some(("1", Some("US"))), // ambiguous (US/CA); treat as US by default
         "CA" => Some(("1", Some("CA"))),
         "SG" => Some(("65", Some("SG"))),
         "TH" => Some(("66", Some("TH"))),
@@ -211,7 +204,9 @@ fn is_trunk_zero_country(iso: &str) -> bool {
 }
 
 /// Given digits after '+', find the longest matching country calling code and ISO if known.
-fn match_country_code_prefix(digits_after_plus: &str) -> Option<(&'static str, Option<&'static str>)> {
+fn match_country_code_prefix(
+    digits_after_plus: &str,
+) -> Option<(&'static str, Option<&'static str>)> {
     // Country calling codes are 1 to 3 digits. Match the longest possible.
     for len in [3usize, 2, 1] {
         if digits_after_plus.len() < len {
@@ -232,15 +227,36 @@ fn match_country_code_prefix(digits_after_plus: &str) -> Option<(&'static str, O
 fn is_known_code(code: &str) -> bool {
     matches!(
         code,
-        "1" | "7" | "33" | "34" | "39" | "44" | "49" | "52" | "55" | "60" | "61" | "62" | "63"
-            | "64" | "65" | "66" | "81" | "82" | "84" | "86" | "852" | "853" | "886" | "91"
+        "1" | "7"
+            | "33"
+            | "34"
+            | "39"
+            | "44"
+            | "49"
+            | "52"
+            | "55"
+            | "60"
+            | "61"
+            | "62"
+            | "63"
+            | "64"
+            | "65"
+            | "66"
+            | "81"
+            | "82"
+            | "84"
+            | "86"
+            | "852"
+            | "853"
+            | "886"
+            | "91"
     )
 }
 
 fn code_to_iso(code: &str) -> Option<&'static str> {
     match code {
         "84" => Some("VN"),
-        "1" => Some("US"),   // could also be CA et al; simplified
+        "1" => Some("US"), // could also be CA et al; simplified
         "44" => Some("GB"),
         "49" => Some("DE"),
         "33" => Some("FR"),

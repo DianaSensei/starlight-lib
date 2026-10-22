@@ -1,40 +1,48 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Data, Fields};
+use syn::{Data, DeriveInput, Fields, LitStr, parse_macro_input};
 
+/// Derives `get_i18n_code()` returning the `#[i18n_code("...")]` key of each enum variant.
 #[proc_macro_derive(I18nCode, attributes(i18n_code))]
 pub fn derive_i18n_key(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    let enum_name = &input.ident;
+    expand(&input)
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
+}
 
-    let Data::Enum(data_enum) = input.data else {
-        panic!("I18nCode can only be derived for enums");
+fn expand(input: &DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+    let enum_name = &input.ident;
+    let Data::Enum(data_enum) = &input.data else {
+        return Err(syn::Error::new_spanned(
+            input,
+            "I18nCode can only be derived for enums",
+        ));
     };
 
-    let mut match_arms = Vec::new();
+    let match_arms = data_enum
+        .variants
+        .iter()
+        .map(|variant| {
+            let ident = &variant.ident;
+            let attribute = variant
+                .attrs
+                .iter()
+                .find(|attribute| attribute.path().is_ident("i18n_code"))
+                .ok_or_else(|| {
+                    syn::Error::new_spanned(variant, "missing #[i18n_code(\"...\")] attribute")
+                })?;
+            let key: LitStr = attribute.parse_args()?;
+            let pattern = match variant.fields {
+                Fields::Named(_) => quote! { Self::#ident { .. } },
+                Fields::Unnamed(_) => quote! { Self::#ident ( .. ) },
+                Fields::Unit => quote! { Self::#ident },
+            };
+            Ok(quote! { #pattern => #key })
+        })
+        .collect::<syn::Result<Vec<_>>>()?;
 
-    for variant in data_enum.variants {
-        let ident = &variant.ident;
-
-        let attr = variant
-            .attrs
-            .iter()
-            .find(|a| a.path().is_ident("i18n_code"))
-            .expect("Missing #[i18n_code(\"...\")] attribute");
-
-        let key: syn::LitStr = attr
-            .parse_args()
-            .expect("i18n attribute must be a string literal");
-
-        let arm = match variant.fields {
-            Fields::Named(_) => quote! { Self::#ident { .. } => #key },
-            Fields::Unnamed(_) => quote! { Self::#ident ( .. ) => #key },
-            Fields::Unit => quote! { Self::#ident => #key },
-        };
-        match_arms.push(arm);
-    }
-
-    quote! {
+    Ok(quote! {
         impl #enum_name {
             pub fn get_i18n_code(&self) -> &'static str {
                 match self {
@@ -42,6 +50,5 @@ pub fn derive_i18n_key(input: TokenStream) -> TokenStream {
                 }
             }
         }
-    }
-        .into()
+    })
 }

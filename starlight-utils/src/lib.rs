@@ -1,8 +1,6 @@
 pub mod phone;
 
-pub use phone::{
-    detect_country, is_valid_e164, normalize_phone, normalize_vn_phone, PhoneNumber,
-};
+pub use phone::{PhoneNumber, detect_country, is_valid_e164, normalize_phone, normalize_vn_phone};
 
 #[cfg(test)]
 mod tests {
@@ -41,6 +39,12 @@ mod tests {
         let intl = normalize_phone("0084 912 345 678", "US").unwrap();
         assert_eq!(intl.e164, "+84912345678");
         assert_eq!(detect_country(&intl.e164).unwrap(), "VN");
+    }
+
+    #[test]
+    fn leading_whitespace_keeps_international_prefix() {
+        let us_default = normalize_phone("  +84 912 345 678", "US").unwrap();
+        assert_eq!(us_default.e164, "+84912345678");
     }
 
     #[test]

@@ -1,13 +1,14 @@
 [package]
 name = "starlight-i18n"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
-starlight-protocol = { path = "../starlight-protocol" }
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
 
 [lib]
 proc-macro = true
+[lints]
+workspace = true

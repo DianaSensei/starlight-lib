@@ -1,0 +1,22 @@
+[package]
+name = "starlight-db"
+description = "PostgreSQL-compatible database access for Starlight: pooling, tenant-scoped transactions (RLS), error classification."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+sea-orm.workspace = true
+secrecy.workspace = true
+serde.workspace = true
+starlight-core.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+uuid.workspace = true
+
+[lints]
+workspace = true
