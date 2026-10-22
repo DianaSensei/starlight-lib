@@ -1,0 +1,28 @@
+# License policy of ADR-0018, enforced by `cargo deny check licenses` in CI.
+[licenses]
+allow = [
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "PostgreSQL",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "CC0-1.0",
+    "0BSD",
+    # File-level copyleft, accepted with a note (ADR-0018): webpki/rustls root certificates.
+    "MPL-2.0",
+    "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.9
+# One shared allowlist for every repo; not every license occurs in each.
+unused-allowed-license = "allow"
+
+# Starlight's own crates are proprietary and never published.
+[licenses.private]
+ignore = true
+ignore-sources = ["https://github.com/DianaSensei/starlight-lib"]

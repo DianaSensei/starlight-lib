@@ -42,6 +42,11 @@ jobs:
       - name: Format
         run: cargo fmt --all --check
 
+      - name: Licenses (ADR-0018)
+        uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses
+
       - name: Lint
         run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 
