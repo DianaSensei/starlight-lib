@@ -4,6 +4,7 @@ use std::time::{Duration, Instant};
 
 use jsonwebtoken::jwk::{AlgorithmParameters, EllipticCurve, Jwk, JwkSet};
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode, decode_header};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 const ALLOWED_ALGORITHMS: &[Algorithm] = &[Algorithm::EdDSA, Algorithm::ES256, Algorithm::RS256];
@@ -105,6 +106,11 @@ impl JwtVerifier {
     }
 
     pub async fn verify(&self, token: &str) -> Result<Claims, AuthError> {
+        self.verify_as(token).await
+    }
+
+    /// Verifies like [`Self::verify`] but decodes the payload into caller-defined claims, e.g. an IdP's `email`.
+    pub async fn verify_as<T: DeserializeOwned>(&self, token: &str) -> Result<T, AuthError> {
         let header = decode_header(token)?;
         if !ALLOWED_ALGORITHMS.contains(&header.alg) {
             return Err(AuthError::UnsupportedAlgorithm(header.alg));
@@ -120,7 +126,7 @@ impl JwtVerifier {
         validation.set_audience(&[&self.config.audience]);
         validation.set_required_spec_claims(&["exp", "iss", "aud", "sub"]);
         validation.leeway = CLOCK_SKEW_LEEWAY_SECS;
-        Ok(decode::<Claims>(token, &signing_key.key, &validation)?.claims)
+        Ok(decode::<T>(token, &signing_key.key, &validation)?.claims)
     }
 
     async fn signing_key(&self, key_id: &str) -> Result<SigningKey, AuthError> {

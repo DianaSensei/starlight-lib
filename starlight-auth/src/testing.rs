@@ -16,25 +16,38 @@ const TEST_KEY_ID: &str = "test-key";
 pub struct TestAuth {
     issuer: TokenIssuer,
     verifier: Arc<JwtVerifier>,
+    config: AuthConfig,
 }
 
 impl TestAuth {
-    #[expect(clippy::expect_used, reason = "test fixture setup")]
     pub fn new() -> Self {
+        Self::for_issuer(TEST_ISSUER, TEST_AUDIENCE)
+    }
+
+    /// Key pair for another issuer, e.g. a stand-in for an external identity provider.
+    #[expect(clippy::expect_used, reason = "test fixture setup")]
+    pub fn for_issuer(issuer: &str, audience: &str) -> Self {
         let signing_key = SigningKey::generate(&mut OsRng);
         let settings = IssuerSettings {
-            issuer: TEST_ISSUER.into(),
-            audience: TEST_AUDIENCE.into(),
+            issuer: issuer.into(),
+            audience: audience.into(),
             key_id: TEST_KEY_ID.into(),
             access_token_ttl: Duration::from_secs(300),
+        };
+        let config = AuthConfig {
+            issuer: issuer.into(),
+            audience: audience.into(),
+            jwks_url: String::new(),
+            jwks_cache_secs: 300,
         };
         let issuer =
             TokenIssuer::from_signing_key(&signing_key, settings).expect("valid generated key");
         let verifier =
-            JwtVerifier::with_jwks(Self::config(), &issuer.jwks()).expect("valid verifier");
+            JwtVerifier::with_jwks(config.clone(), &issuer.jwks()).expect("valid verifier");
         Self {
             issuer,
             verifier: Arc::new(verifier),
+            config,
         }
     }
 
@@ -45,6 +58,10 @@ impl TestAuth {
             jwks_url: String::new(),
             jwks_cache_secs: 300,
         }
+    }
+
+    pub fn auth_config(&self) -> AuthConfig {
+        self.config.clone()
     }
 
     pub fn issuer(&self) -> &TokenIssuer {

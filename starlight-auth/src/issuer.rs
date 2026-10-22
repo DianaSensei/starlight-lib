@@ -116,15 +116,19 @@ impl TokenIssuer {
             tid: tenant_id.as_uuid(),
             perms: permissions,
         };
-        let mut header = Header::new(Algorithm::EdDSA);
-        header.kid = Some(self.settings.key_id.clone());
-        header.typ = Some(ACCESS_TOKEN_TYPE.to_owned());
-        let access_token = encode(&header, &claims, &self.encoding_key)?;
         Ok(IssuedToken {
-            access_token,
+            access_token: self.sign(&claims)?,
             token_id,
             expires_in,
         })
+    }
+
+    /// Signs arbitrary claims with this issuer's key; [`Self::issue`] covers Starlight access tokens.
+    pub fn sign<C: Serialize>(&self, claims: &C) -> Result<String, IssuerError> {
+        let mut header = Header::new(Algorithm::EdDSA);
+        header.kid = Some(self.settings.key_id.clone());
+        header.typ = Some(ACCESS_TOKEN_TYPE.to_owned());
+        Ok(encode(&header, claims, &self.encoding_key)?)
     }
 
     pub fn jwks(&self) -> JwkSet {

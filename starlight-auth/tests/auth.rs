@@ -137,3 +137,42 @@ async fn symmetric_algorithms_are_refused() {
 
     assert!(matches!(result, Err(AuthError::UnsupportedAlgorithm(_))));
 }
+
+#[derive(serde::Serialize, serde::Deserialize)]
+struct ProviderClaims {
+    iss: String,
+    sub: String,
+    aud: String,
+    exp: u64,
+    email: String,
+    email_verified: bool,
+}
+
+#[tokio::test]
+async fn custom_claims_of_another_issuer_are_verified() {
+    let provider = TestAuth::for_issuer("https://idp.example", "starlight-identity");
+    let expires = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+        + 60;
+    let claims = ProviderClaims {
+        iss: "https://idp.example".into(),
+        sub: "idp-user-1".into(),
+        aud: "starlight-identity".into(),
+        exp: expires,
+        email: "an@example.com".into(),
+        email_verified: true,
+    };
+    let token = provider.issuer().sign(&claims).unwrap();
+
+    let verified: ProviderClaims = provider.verifier().verify_as(&token).await.unwrap();
+    let rejected = TestAuth::new()
+        .verifier()
+        .verify_as::<ProviderClaims>(&token)
+        .await;
+
+    assert_eq!(verified.email, "an@example.com");
+    assert!(verified.email_verified);
+    assert!(rejected.is_err());
+}
